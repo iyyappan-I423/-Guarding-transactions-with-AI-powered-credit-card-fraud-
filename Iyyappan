@@ -1,0 +1,44 @@
+ import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+# 1. Load dataset
+# You can replace this with your dataset. Here's a placeholder:
+data = pd.read_csv("creditcard.csv")  # Assumes CSV has features + 'Class' column (1 = fraud, 0 = normal)
+
+# 2. Explore basic info
+print(data.head())
+print(data['Class'].value_counts())
+
+# 3. Prepare features and labels
+X = data.drop('Class', axis=1)
+y = data['Class']
+
+# 4. Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+# 5. Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 6. Train model
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+
+# 7. Predict
+y_pred = model.predict(X_test_scaled)
+
+# 8. Evaluate
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# 9. Guard transactions with predictions
+test_data = X_test.copy()
+test_data['Actual'] = y_test
+test_data['Predicted'] = y_pred
+test_data['Fraud Alert'] = test_data['Predicted'].apply(lambda x: 'Alert' if x == 1 else 'Safe')
+
+print(test_data[['Actual', 'Predicted', 'Fraud Alert']].head())
